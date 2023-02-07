@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef uint8_t Thread_ID_t;
 
 /** List of states in which thread can be.
@@ -66,7 +70,7 @@ Thread_ID_t os_get_current_thread();
  * @returns ID of newly created thread, or special value THREAD_TABLE_FULL if there
  * is no more room for new threads.
  */
-Thread_ID_t os_thread_create(void * entrypoint, void * data, uint32_t * stack, uint32_t stack_size);
+Thread_ID_t os_thread_create(void (* entrypoint)(void*), void * data, uint32_t * stack, uint32_t stack_size);
 
 /** Structure which holds information about existing threads
  * Implementer has to provide this variable having non-zero size
@@ -80,3 +84,7 @@ extern struct OS_thread_t os_threads[];
  * @returns amount of slots available in os_threads array
  */
 extern uint8_t kernel_threads_count();
+
+#ifdef __cplusplus
+} // extern "C"
+#endif

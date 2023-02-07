@@ -40,7 +40,12 @@ include(FindCMSIS)
 project(bare-rtos-example C CXX ASM)
 
 pico_sdk_init()
+add_definitions(-Wall -Wextra)
 
 add_executable(bare-rtos ${OS_SRCS_ROOT}/kernel/kernel.c main.c)
 target_link_libraries(bare-rtos pico_stdlib cmsis_interface cmsis_core)
 pico_add_extra_outputs(bare-rtos)
+
+add_executable(bare-rtos-cpp ${OS_SRCS_ROOT}/kernel/kernel.c main.c)
+target_link_libraries(bare-rtos-cpp pico_stdlib cmsis_interface cmsis_core)
+pico_add_extra_outputs(bare-rtos-cpp)

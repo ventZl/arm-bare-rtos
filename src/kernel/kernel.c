@@ -6,19 +6,12 @@
 
 static struct OS_core_state_t core_state[CPU_CORE_COUNT];
 
-static Thread_ID_t incoming_thread_id;
-static Thread_ID_t outgoing_thread_id;
 static bool ctxt_switch_pending;
 
 bool os_schedule_context_switch(Thread_ID_t next_thread_id)
 {
-    struct OS_thread_t * old_thread;
-    struct OS_thread_t * new_thread;
-
     const uint8_t cpu = kernel_current_cpu();
     const Thread_ID_t current_thread_id = core_state[cpu].thread_current;
-
-	old_thread = &os_threads[current_thread_id];
 
 	if (os_threads[current_thread_id].state == THREAD_STATE_RUNNING)
 	{
@@ -109,7 +102,7 @@ void __attribute__((noreturn, weak)) os_thread_dispose()
     while (1) {};
 }
 
-Thread_ID_t os_thread_create(void * entrypoint, void * data, uint32_t * stack, uint32_t stack_size)
+Thread_ID_t os_thread_create(void (* entrypoint)(void*), void * data, uint32_t * stack, uint32_t stack_size)
 {
     const uint32_t stack_size_dword = stack_size / sizeof(uint32_t);
 
