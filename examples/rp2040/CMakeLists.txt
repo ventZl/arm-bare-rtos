@@ -46,6 +46,6 @@ add_executable(bare-rtos ${OS_SRCS_ROOT}/kernel/kernel.c main.c)
 target_link_libraries(bare-rtos pico_stdlib cmsis_interface cmsis_core)
 pico_add_extra_outputs(bare-rtos)
 
-add_executable(bare-rtos-cpp ${OS_SRCS_ROOT}/kernel/kernel.c main.c)
+add_executable(bare-rtos-cpp ${OS_SRCS_ROOT}/kernel/kernel.c main.cpp)
 target_link_libraries(bare-rtos-cpp pico_stdlib cmsis_interface cmsis_core)
 pico_add_extra_outputs(bare-rtos-cpp)
