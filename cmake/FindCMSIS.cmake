@@ -7,13 +7,20 @@ message(STATUS "LIST dir is: ${CMAKE_CURRENT_SOURCE_DIR}")
 file(GLOB_RECURSE DEVICE_INCLUDE ${CMSIS_ROOT}/*/${DEVICE}.h)
 file(GLOB_RECURSE SYSTEM_INCLUDE ${CMSIS_ROOT}/*/system_${DEVICE}.h)
 file(GLOB_RECURSE CORES_INCLUDE ${CMSIS_ROOT}/*/core_cm*.h)
-file(GLOB_RECURSE SYSTEM_SOURCE RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMSIS_ROOT}/*/system_${DEVICE}.c)
-file(GLOB_RECURSE STARTUP_SOURCE RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMSIS_ROOT}/*/startup_${DEVICE}.c)
+if (SYSTEM_SOURCE STREQUAL "")
+    file(GLOB_RECURSE SYSTEM_SOURCE RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMSIS_ROOT}/*/system_${DEVICE}.s)
+endif()
+if (NOT STARTUP_SOURCE STREQUAL "")
+    file(GLOB_RECURSE STARTUP_SOURCE RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${CMSIS_ROOT}/*/startup_${DEVICE}.s)
+endif()
 
 message(STATUS "Device include: ${DEVICE_INCLUDE}")
 message(STATUS "System include: ${SYSTEM_INCLUDE}")
 message(STATUS "Cortex-M includes: ${CORES_INCLUDE}")
 message(STATUS "System source: ${SYSTEM_SOURCE}")
+if (CMSIS_STARTUP_FILTER)
+    list(FILTER STARTUP_SOURCE INCLUDE REGEX ${CMSIS_STARTUP_FILTER})
+endif()
 message(STATUS "Startup source: ${STARTUP_SOURCE}")
 
 # Extract paths to each of headers to compose CMSIS include directories 
@@ -56,6 +63,15 @@ set(CMSIS_SRCS ${SYSTEM_SOURCE} ${STARTUP_SOURCE})
 add_library(cmsis_interface INTERFACE)
 set_property(TARGET cmsis_interface
     PROPERTY
-    INTERFACE_INCLUDE_DIRECTORIES ${INCLUDE_DIRS})
+    INTERFACE_INCLUDE_DIRECTORIES "${INCLUDE_DIRS}")
+set_property(TARGET cmsis_interface
+    PROPERTY
+    INTERFACE_COMPILE_OPTIONS)
 
-
+#if (STARTUP_SOURCE OR SYSTEM_SOURCE)
+    add_library(cmsis_startup STATIC ${STARTUP_SOURCE} ${SYSTEM_SOURCE})
+    set_property(TARGET cmsis_startup
+        PROPERTY
+        INTERFACE_LINK_OPTIONS "-T${CMSIS_LINKER_FILE}")
+    target_link_libraries(cmsis_startup cmsis_interface)
+#endif()
