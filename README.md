@@ -18,7 +18,7 @@ Usage
 -----
 
 To actually use nano RTOS, all you have to do is to use the contents of
-[src/kernel] subdirectory. There is one C file and a bunch of headers. Cloning
+[src/kernel](src/kernel) subdirectory. There is one C file and a bunch of headers. Cloning
 this repository as a submodule will work too. This repository does not have any
 submodules defined and contains only small "dead" code in examples. Everything
 else here is entirely optional.
@@ -30,7 +30,7 @@ thread table.
 Documentation
 -------------
 
-The whole nano RTOS API is described by the [src/kernel/api.h] file. It contains
+The whole nano RTOS API is described by the [src/kernel/api.h](src/kernel/api.h) file. It contains
 of one struct, one variable forward declaration and five functions.
 
 As a user, you will most probably only need to deal with some of them:
@@ -82,5 +82,5 @@ find out the end of the thread table.
 Example
 -------
 
-In [examples] subdirectory, there is an example of how to use the kernel to
+In [examples](examples) subdirectory, there is an example of how to use the kernel to
 create an environment with preemptive multi-threading. More examples to come.
