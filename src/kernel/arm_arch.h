@@ -72,7 +72,7 @@ ALWAYS_INLINE void __ISR_return()
  * This operation will claim 32 bytes (8 registers * 4 bytes) on stack.
  * @return top of application stack after application context was saved
  */
-ALWAYS_INLINE void * save_context()
+ALWAYS_INLINE uint32_t * save_context()
 {
 	uint32_t * scratch;
 	asm (
