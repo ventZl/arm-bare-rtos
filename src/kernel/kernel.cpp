@@ -144,7 +144,7 @@ export class Scheduler {
 
 export auto scheduler = Scheduler();
 
-extern "C" __attribute__((naked)) void pend_sv_handler(void) {
+extern "C" __attribute__((naked)) void PendSV_Handler(void) {
 	asm volatile(
 		".syntax unified\n"
 		"push {lr}\n"
