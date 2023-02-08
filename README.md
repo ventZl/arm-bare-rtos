@@ -1,7 +1,11 @@
 Nano RTOS
 =========
 
-This is "bare" RTOS. Smallest-possible Cortex-M thread switcher you can write.
+This is "bare" RTOS. Smallest-possible Cortex-M thread switcher you can write in 
+C or C++. Originally the scheduler was mostly written in C with just a few helper
+function written in assembly to perform some sensitive tasks which couldn't be
+written in C. Later a C++20 module version was added.
+
 It does only do the heavy lifting needed to perform thread switching and lets the
 user to decide on everything else. It doesn't even implement any specific
 scheduling model, so in fact you can extend it and have whatever scheduler
@@ -18,10 +22,18 @@ Usage
 -----
 
 To actually use nano RTOS, all you have to do is to use the contents of
-[src/kernel](src/kernel) subdirectory. There is one C file and a bunch of headers. Cloning
-this repository as a submodule will work too. This repository does not have any
-submodules defined and contains only small "dead" code in examples. Everything
-else here is entirely optional.
+[src/kernel](src/kernel) subdirectory. There is one C, one C++ file and a bunch of 
+headers. Cloning this repository as a submodule will totally work too. 
+This repository does not have any submodules defined and contains only small "dead"
+code in examples subdirectory . Everything else here is entirely optional.
+
+There are two versions of the code provided:
+
+ * kernel.c + api.h + arm_arch.h + kernel.h - purely C-based implementation
+ * kernel.cpp + arm_arch.h - C++20 module-based implementation
+
+You can use whichever you like, they are entirely independent from each other
+(except of arm_arch.h, which contains shared intrinsics).
 
 Aside from that, you'll have to provide a thread table variable and one
 call-back method, which provides kernel with amount of available entries in the 
@@ -30,54 +42,8 @@ thread table.
 Documentation
 -------------
 
-The whole nano RTOS API is described by the [src/kernel/api.h](src/kernel/api.h) file. It contains
-of one struct, one variable forward declaration and five functions.
-
-As a user, you will most probably only need to deal with some of them:
-
-~~~~~
-Thread_ID_t os_thread_create(void * entrypoint, void * data, uint32_t * stack,
-uint32_t stack_size)
-~~~~~
-
-Serves the purpose of creating new thread. It is your responsibility to allocate
-stack space for the thread and provide it together with the address of entrypoint 
-function. Optionally you can provide one void pointer, which will be passed as
-the first argument to the entrypoint function. Threads are normally configured
-to run as unprivileged. Returns thread ID usable by the `os_start` or 
-`os_schedule_context_switch` or special value to signal that there is no more
-room in thread table.
-
-~~~~~
-void os_start(Thread_ID_t startup_thread)
-~~~~~
-
-This will actually start the thread switcher and jump into startup_thread. You
-shall ever only call this function once. It will never return and will pass
-control to the specified thread, using the stack which was provided for the
-thread.
-
-~~~~
-bool os_schedule_context_switch(Thread_ID_t next_thread_id)
-~~~~
-
-This routine will schedule thread switch. It has to be called from a privileged
-context, which means that the thread itself cannot call this function directly.
-It has to be wrapped either in SVC call (yield, or cooperative multi-threading), 
-or called from some timer handler (preemptive multi-threading). Actual thread
-switch is done using PendSV interrupt service routine. This opens the
-possibility of doing thread switches from IRQ service routines. Yet one has to 
-implement some locking as the routine is not re-entrant as of now.
-
-~~~~~
-uint8_t kernel_threads_count()
-struct OS_Thread_t os_threads[];
-~~~~~
-
-These two are something you have to provide. You have to allocate the `os_threads`
-array containing as many slots for threads as your application needs. Then, you
-have to provide `kernel_threads_count()` function, which nano RTOS can use to
-find out the end of the thread table.
+The API of both implementations is well documented by Doxygen comments inside the 
+code. We have some additional documentation inside [doc](doc) subdirectory.
 
 Example
 -------
