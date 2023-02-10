@@ -34,6 +34,8 @@ include_directories(${OS_SRCS_ROOT})
 set(CMSIS_ROOT ${PICO_SDK_PATH}/src/rp2_common/cmsis/stub/CMSIS)
 set(DEVICE RP2040)
 set(CMSIS_LINKER_FILE ${PICO_SDK_PATH}/src/rp2_common/pico_standard_link/memmap_default.ld)
+set(CMAKE_C_FLAGS_Debug "${CMAKE_C_FLAGS_Debug} -ggdb3")
+set(CMAKE_CXX_FLAGS_Debug "${CMAKE_C_FLAGS_Debug} -ggdb3")
 
 include(FindCMSIS)
 
