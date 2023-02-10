@@ -1,5 +1,15 @@
 #pragma once
 
+/* SPDX-License-Identifier: BSD-3-Clause
+ *
+ * C API declaration for nano RTOS.
+ *
+ * Copyright (c) 2022, Marek Koza (qyx@krtko.org)
+ * Copyright (c) 2023, Eduard Drusa
+ *
+ * All rights reserved.
+ */
+
 #include <stdint.h>
 #include <stdbool.h>
 

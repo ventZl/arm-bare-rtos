@@ -1,3 +1,15 @@
+/* SPDX-License-Identifier: BSD-3-Clause
+ *
+ * C implementation of nano RTOS kernel.
+ * Some concepts borrowed from https://github.com/zyp/laks.
+ *
+ * Copyright (c) 2022, Marek Koza (qyx@krtko.org)
+ * Copyright (c) 2023, Eduard Drusa
+ * Copyright (c) 2013, Vegard Storheil Eriksen
+ *
+ * All rights reserved.
+ */
+
 #include "kernel.h"
 #include "api.h"
 #include <stdint.h>

@@ -1,5 +1,17 @@
 #pragma once
 
+/* SPDX-License-Identifier: BSD-3-Clause
+ *
+ * Internal structures of nano RTOS.
+ * Some concepts borrowed from https://github.com/zyp/laks.
+ *
+ * Copyright (c) 2022, Marek Koza (qyx@krtko.org)
+ * Copyright (c) 2023, Eduard Drusa
+ * Copyright (c) 2013, Vegard Storheil Eriksen
+ *
+ * All rights reserved.
+ */
+
 #include "api.h"
 #include "arm_arch.h"
 

@@ -1,5 +1,14 @@
 #pragma once
 
+/* SPDX-License-Identifier: BSD-3-Clause
+ *
+ * AArch32 intrinsics and bare metal glue.
+ *
+ * Copyright (c) 2021-2023, Eduard Drusa
+ *
+ * All rights reserved.
+ */
+
 /* If we are running GCC, then try to include CMSIS RTE header to derive location
  * of the device file.
  */
@@ -16,6 +25,10 @@
 #ifdef CMSIS_device_header
 #include CMSIS_device_header
 
+// Here we wrap CMSIS objects into macros.
+// This way, if anyone wants to hardcode this, doesn't have to recreate whole CMSIS
+// stuff from scratch, if we need just one register and one flag here.
+// Actual symbol names are libopencm3-compatible
 #define SCB_ICSR SCB->ICSR
 #define SCB_ICSR_PENDSVSET (1 << SCB_ICSR_PENDSVSET_Pos)
 #define cortex_enable_interrupts() __disable_irq()
