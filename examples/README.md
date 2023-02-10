@@ -18,6 +18,9 @@ As of now, there are examples of how to build nano RTOS on top of following SDKs
    SDK. You cannot link just cmsis_startup library due to the way how external FLASH
    is supported. Also, as this SDK is built on top of CMake, you basically have to 
    use CMake to build your project.
+ * C++20 module example - This example is also based on RP2040 platform (which actually
+   doesn't matter) and shows how to use the C++20 module. You need fairly modern compiler
+   to be able to build this example.
 
 All examples are accompanied by CMakeLists.txt as of now. These files have toolchain
 files bundled to add support for arm-gcc cross compiler. These files assume that
