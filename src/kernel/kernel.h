@@ -12,8 +12,11 @@
 
 #include <stdint.h>
 
-/** Alias thread ID */
-typedef uint8_t Thread_ID_t;
+/* The current thread stack frame / saved context on the stack. */
+struct Frame {
+    uint32_t r4, r5, r6, r7, r8, r9, r10, r11;
+    uint32_t r0, r1, r2, r3, r12, lr, pc, psr;
+};
 
 /** Structure holding current scheduling state of CPU.
  *
@@ -22,9 +25,7 @@ typedef uint8_t Thread_ID_t;
  * CPUs.
  */
 struct OS_core_state_t {
-	Thread_ID_t thread_prev;
-	Thread_ID_t thread_current;
-	Thread_ID_t thread_next;
+	struct OS_Thread_t * thread_prev;
+	struct OS_Thread_t * thread_current;
+	struct OS_Thread_t * thread_next;
 };
-
-extern struct OS_thread_t os_threads[];

@@ -8,21 +8,21 @@ static struct OS_core_state_t core_state[CPU_CORE_COUNT];
 
 static bool ctxt_switch_pending;
 
-bool os_schedule_context_switch(Thread_ID_t next_thread_id)
+bool os_schedule_context_switch(struct OS_Thread_t * next_thread)
 {
     const uint8_t cpu = kernel_current_cpu();
-    const Thread_ID_t current_thread_id = core_state[cpu].thread_current;
+    struct OS_Thread_t * current_thread = core_state[cpu].thread_current;
 
-	if (os_threads[current_thread_id].state == THREAD_STATE_RUNNING)
+	if (current_thread->state == THREAD_STATE_RUNNING)
 	{
 		// only mark leaving thread as ready, if it was runnig before
 		// if leaving thread was, for example, quit before calling
 		// os_sched_yield, then this would return it back to life
-		os_threads[current_thread_id].state = THREAD_STATE_READY;
+		current_thread->state = THREAD_STATE_READY;
 	}
-	core_state[cpu].thread_next = next_thread_id;
+	core_state[cpu].thread_next = next_thread;
 
-	os_threads[next_thread_id].state = THREAD_STATE_RUNNING;
+	next_thread->state = THREAD_STATE_RUNNING;
 
     schedule_pendsv();
 
@@ -46,6 +46,7 @@ __attribute__((naked)) void PendSV_Handler(void)
 	asm volatile(
 			".syntax unified\n\t"
 			"push {lr}\n\t"
+            "cpsid i\n\t"
 	);
 //	cortex_disable_interrupts();
 	/* Do NOT put anything here. You will clobber context being stored! */
@@ -53,12 +54,12 @@ __attribute__((naked)) void PendSV_Handler(void)
 
     /* Save SP of outgoing process into os_threads */
     const uint8_t cpu = kernel_current_cpu();
-    const Thread_ID_t current_thread = core_state[cpu].thread_current;
-    os_threads[current_thread].sp = temp_sp;
+    struct OS_Thread_t * current_thread = core_state[cpu].thread_current;
+    current_thread->sp = temp_sp;
 
     /* Load SP of incoming process from os_threads */
-    const Thread_ID_t next_thread = core_state[cpu].thread_next;
-    temp_sp = os_threads[next_thread].sp;
+    struct OS_Thread_t * next_thread = core_state[cpu].thread_next;
+    temp_sp = next_thread->sp;
 
 //    core_state[cpu].thread_prev = current_thread;
     core_state[cpu].thread_current = next_thread;
@@ -68,21 +69,22 @@ __attribute__((naked)) void PendSV_Handler(void)
 	/* Do NOT put anything here. You will clobber context just restored! */
 //	cortex_enable_interrupts();
 	asm volatile(
-			"pop {pc}"
+            "cpsie i\n\t"
+			"pop {pc}\n\t"
 	);
 }
 
-void __attribute__((noreturn)) os_start(Thread_ID_t startup_thread)
+void __attribute__((noreturn)) os_start(struct OS_Thread_t * startup_thread)
 {
     uint8_t cpu = kernel_current_cpu();
     core_state[cpu].thread_current = startup_thread;
-    os_threads[startup_thread].state = THREAD_STATE_RUNNING;
+    startup_thread->state = THREAD_STATE_RUNNING;
 
     // Start this thread
     // We are adding 8 here, because normally pend_sv_handler would be reading 8 general 
     // purpose registers here. But there is nothing useful there, so we simply skip it.
     // Code below then restores what would normally be restored by return from handler.
-    uint32_t * thread_sp = os_threads[startup_thread].sp + 8;
+    uint32_t * thread_sp = startup_thread->sp + 8;
     __set_PSP((uint32_t) thread_sp);
     __set_CONTROL(0x03); 	// SPSEL = 1 | nPRIV = 1: use PSP and unpriviledged thread mode
 
@@ -102,31 +104,35 @@ void __attribute__((noreturn, weak)) os_thread_dispose()
     while (1) {};
 }
 
-Thread_ID_t os_thread_create(void (* entrypoint)(void*), void * data, uint32_t * stack, uint32_t stack_size)
+int os_thread_create(struct OS_Thread_t * thread, void (* entrypoint)(void*), void * data, uint8_t * stack, uint32_t stack_size)
 {
-    const uint32_t stack_size_dword = stack_size / sizeof(uint32_t);
-
-    for (unsigned char thread_id = 0; thread_id < kernel_threads_count(); ++thread_id)
+    if (thread != NULL)
     {
-        if (os_threads[thread_id].state == THREAD_STATE_EMPTY) {
-            os_threads[thread_id].sp = &stack[stack_size_dword - 16];
+        if (thread->state == THREAD_STATE_EMPTY) {
+            thread->sp = (uint32_t *) &stack[stack_size - sizeof(struct Frame)];
 
-            stack[stack_size_dword - 8] = (unsigned long) data; // R0
-            stack[stack_size_dword - 3] = (unsigned long) os_thread_dispose; // LR
-            stack[stack_size_dword - 2] = (unsigned long) entrypoint; // PC
-            stack[stack_size_dword - 1] = 0x01000000; // xPSR
+            // Place where thread state frame begins on thread's stack
+            struct Frame * isr_frame = (struct Frame *) thread->sp;
 
-            os_threads[thread_id].state = THREAD_STATE_READY;
-            return thread_id;
+            isr_frame->r0 = (uint32_t) data;
+            isr_frame->lr = (uint32_t) os_thread_dispose;
+            isr_frame->pc = (unsigned long) entrypoint;
+            isr_frame->psr = 0x01000000; // Activate just Thumb mode - mandatory
+
+            thread->state = THREAD_STATE_READY;
+            return OS_E_OK;
+        }
+        else {
+            return OS_E_BUSY;
         }
     }
 
-    return THREAD_TABLE_FULL;
+    return OS_E_NULLPTR;
 }
 
-Thread_ID_t os_get_current_thread()
+struct OS_Thread_t * os_get_current_thread()
 {
     uint8_t cpu = kernel_current_cpu();
-    const Thread_ID_t current_thread_id = core_state[cpu].thread_current;
-    return current_thread_id;
+    struct OS_Thread_t * current_thread = core_state[cpu].thread_current;
+    return current_thread;
 }
